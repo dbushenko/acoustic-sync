@@ -1,0 +1,86 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ffmpeg_smoke:
+        description: Install FFmpeg and run the synthetic end-to-end smoke
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements/*.txt
+      - name: Install locked development environment
+        run: |
+          python -m pip install -r requirements/dev.txt
+          python -m pip install --no-deps --no-build-isolation -e '.[web,dev]'
+          python -m pip check
+          python scripts/check-dependencies.py
+      - name: Unit and web tests
+        run: python -m pytest -m 'not ffmpeg'
+      - name: Build sdist and wheel
+        run: |
+          python -m build --no-isolation
+          python scripts/check-distributions.py
+      - name: Check installed wheel outside the checkout
+        run: |
+          python -m pip install --force-reinstall --no-deps dist/*.whl
+          cd "$RUNNER_TEMP"
+          python "$GITHUB_WORKSPACE/scripts/check-package.py"
+          acoustic-sync --help
+      - name: Check shell syntax
+        run: |
+          for script in scripts/*.sh ./*.sh ./*.command; do bash -n "$script"; done
+      - name: Check PowerShell syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($file in Get-ChildItem scripts/*.ps1) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
+          }
+
+  ffmpeg-smoke:
+    if: github.event_name == 'workflow_dispatch' && inputs.ffmpeg_smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version
+          ffprobe -version
+      - name: Install and smoke
+        run: |
+          python -m pip install -r requirements/dev.txt
+          python -m pip install --no-deps --no-build-isolation -e '.[web,dev]'
+          acoustic-sync doctor
+          python scripts/smoke-ffmpeg.py

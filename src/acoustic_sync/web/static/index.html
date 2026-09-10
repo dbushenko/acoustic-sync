@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acoustic Sync - Local studio</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="/"><span class="mark" aria-hidden="true">AS</span> Acoustic<span>Sync</span></a><span class="local">LOCAL WORKSPACE</span></header>
+<main>
+  <section class="intro"><p class="eyebrow">AUDIO TO ALIGNED TIMELINES</p><h1>Synchronize your recordings.</h1><p>Match local footage by sound. Export an FCP7 timeline for Premiere Pro.</p></section>
+  <div class="workspace">
+    <section class="panel setup"><div class="panel-heading"><span class="step">01</span><h2>Set up a sync</h2></div>
+      <form id="job-form">
+        <label for="input">Source folder</label><div class="path-field"><input id="input" name="input_dir" required placeholder="Choose your footage folder" autocomplete="off"><button id="browse-input" type="button" class="secondary" aria-label="Browse for source folder">Browse...</button></div><p class="hint">Includes footage in subfolders. You can also paste a path.</p>
+        <label for="output">Output XML path</label><div class="path-field"><input id="output" name="output_xml" required placeholder="Choose where to save the timeline" autocomplete="off"><button id="browse-output" type="button" class="secondary" aria-label="Browse for output XML">Browse...</button></div><p class="hint">XML, JSON reports and logs go in this folder. Existing outputs may be replaced.</p>
+        <div class="settings">
+          <div><label for="fps-preset">Frame rate</label><select id="fps-preset"><option value="24000/1001">23.976</option><option value="24">24</option><option value="25" selected>25</option><option value="30000/1001">29.97</option><option value="30">30</option><option value="50">50</option><option value="60000/1001">59.94</option><option value="60">60</option><option value="100">100</option><option value="120000/1001">119.88</option><option value="120">120</option><option value="custom">Custom...</option></select><div id="fps-custom" hidden><label for="fps">Exact frame rate</label><input id="fps" name="fps" value="25" required aria-describedby="fps-hint" autocomplete="off"></div><span class="hint" id="fps-hint">Choose Custom to type a rate or fraction.</span></div>
+          <div><label for="threshold">Confidence</label><input id="threshold" name="confidence_threshold" type="number" min="0" max="100" step="1" value="70" required><span class="hint">0-100 threshold</span></div>
+          <div><label for="workers">Workers</label><input id="workers" name="workers" type="number" min="1" max="64" step="1" value="2" required><span class="hint">Parallel extraction</span></div>
+        </div>
+        <div id="form-error" class="error" role="alert" hidden></div><button id="submit" class="primary" type="submit">Start sync <span aria-hidden="true">&rarr;</span></button><p class="privacy">Local processing. One active job at a time.</p>
+      </form>
+    </section>
+    <section class="panel monitor"><div class="panel-heading"><span class="step">02</span><h2>Sync monitor</h2><span id="status" class="badge">READY</span></div>
+      <div id="empty"><div class="wave" aria-hidden="true">&#9602; &#9605; &#9603; &#9607; &#9604; &#9608; &#9605; &#9602;</div><h3>Ready for your recordings</h3><p>Choose your paths and start a sync.<br>Progress and results will appear here.</p></div>
+      <div id="detail" hidden>
+        <div class="run-heading"><h3 id="job-title"></h3><button id="cancel" class="secondary" type="button">Cancel job</button></div>
+        <p id="stage" aria-live="polite"></p><progress id="progress" max="100" value="0" aria-label="Stage progress"></progress><div class="progress-caption"><span id="message"></span><span id="percent"></span></div>
+        <p id="job-error" class="error" role="alert" hidden></p>
+        <div class="metrics"><div><strong id="matches">-</strong><span>Accepted matches</span></div><div><strong id="groups">-</strong><span>Groups</span></div><div><strong id="warnings-count">-</strong><span>Need review</span></div></div>
+        <ul id="warnings" class="warnings"></ul><div id="downloads" class="downloads"></div>
+        <details id="report-details" hidden><summary>Raw report and sync map</summary><pre id="report"></pre></details>
+      </div>
+    </section>
+  </div>
+  <section class="panel results" id="results" hidden><div class="panel-heading"><h2>Alignment results</h2></div><p class="hint">Offsets are relative to each group's reference. Separate groups have unknown relative timing.</p><div id="aligned-table" class="table-scroll"></div><div id="orphan-table" class="table-scroll"></div></section>
+  <section class="panel history"><div class="panel-heading"><span class="step">03</span><h2>Job history</h2><span id="connection" class="hint" role="status">Connecting...</span></div><div id="jobs"><p class="hint">No jobs yet.</p></div></section>
+  <footer>ACOUSTIC SYNC <span>Original media stays in place.</span></footer>
+</main>
+<dialog id="path-picker" aria-labelledby="picker-title">
+  <div class="picker-heading"><h2 id="picker-title">Choose a folder</h2><button type="button" class="secondary" id="picker-close" aria-label="Close file browser">Close</button></div>
+  <div class="picker-navigation"><button type="button" class="secondary" id="picker-roots">Computer</button><button type="button" class="secondary" id="picker-up">Up one folder</button></div>
+  <p id="picker-location" class="hint" aria-live="polite"></p>
+  <p id="picker-error" class="error" role="alert" hidden></p>
+  <div id="picker-entries" class="picker-entries" aria-label="Folders and XML files" aria-busy="false"></div>
+  <button type="button" id="picker-more" class="secondary" hidden>Show more</button>
+  <div id="picker-filename-row" hidden><label for="picker-filename">XML filename</label><input id="picker-filename" value="timeline.xml" autocomplete="off"><p class="hint">Choose a folder, then enter a filename or select an existing XML. Nothing is saved until you start a sync.</p></div>
+  <div class="picker-actions"><button type="button" class="secondary" id="picker-cancel">Cancel</button><button type="button" class="primary" id="picker-select" disabled>Use this folder</button></div>
+</dialog>
+</body></html>

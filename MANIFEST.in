@@ -1,0 +1,10 @@
+include README.md pyproject.toml MANIFEST.in run-web.bat run-web.sh run-web.command install.bat install.sh install.command
+recursive-include docs *.md
+recursive-include requirements *.txt
+recursive-include schemas *.json
+recursive-include scripts *.py *.ps1 *.sh
+recursive-include tests *
+recursive-include src/acoustic_sync/schemas *.json
+recursive-include src/acoustic_sync/web/static *
+global-exclude *.py[cod]
+global-exclude __pycache__

@@ -1,0 +1,9 @@
+# Exact dependency closure; CPython 3.12/3.13. See docs/development.md.
+numpy==2.5.3
+scipy==1.18.1
+jsonschema==4.26.0
+attrs==26.1.0
+jsonschema-specifications==2025.9.1
+referencing==0.37.0
+rpds-py==2026.6.3
+typing-extensions==4.16.0
